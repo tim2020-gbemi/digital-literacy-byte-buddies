@@ -1,5 +1,5 @@
 import { HeadContent, Scripts, createRootRoute } from '@tanstack/react-router'
-
+import { useEffect } from 'react'
 
 import Header from '@/components/Header'
 import '../styles.css'
@@ -44,6 +44,11 @@ export const Route = createRootRoute({
         name: 'theme-color',
         content: '#38bdf8',
       },
+      // Home-screen app on iPhone/iPad.
+      { name: 'apple-mobile-web-app-capable', content: 'yes' },
+      { name: 'mobile-web-app-capable', content: 'yes' },
+      { name: 'apple-mobile-web-app-title', content: 'Byte Buddies' },
+      { name: 'apple-mobile-web-app-status-bar-style', content: 'default' },
     ],
     links: [
       { rel: 'preconnect', href: 'https://fonts.googleapis.com' },
@@ -53,12 +58,20 @@ export const Route = createRootRoute({
         href: 'https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Nunito:wght@500;700;800&display=swap',
       },
       { rel: 'icon', href: '/favicon.ico' },
+      { rel: 'manifest', href: '/manifest.webmanifest' },
+      { rel: 'apple-touch-icon', href: '/icons/apple-touch-icon.png' },
     ],
   }),
   shellComponent: RootDocument,
 })
 
 function RootDocument({ children }: { children: React.ReactNode }) {
+  // Register the service worker in production so the app can be installed and works offline.
+  useEffect(() => {
+    if (import.meta.env.PROD && 'serviceWorker' in navigator) {
+      navigator.serviceWorker.register('/sw.js').catch(() => {})
+    }
+  }, [])
   return (
     <html lang="en">
       <head>
