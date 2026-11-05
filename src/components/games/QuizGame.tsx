@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import type { QuizActivity } from '@/data/worlds'
-import { sfx } from '@/lib/sfx'
+import { sfx, useReadAloud } from '@/lib/sfx'
 import Bit from '@/components/Bit'
 import NextButton from './NextButton'
 import type { GameProps } from './types'
@@ -10,6 +10,12 @@ export default function QuizGame({ activity, theme, onMistake, onComplete }: Gam
   const [wrong, setWrong] = useState<number[]>([])
   const [solved, setSolved] = useState(false)
   const q = activity.questions[index]
+  // The first question follows the game title; later ones are read as soon as they show.
+  useReadAloud(`${q.prompt} Is it ${q.options.map((o) => o.label).join(', or ')}?`, {
+    intro: true,
+    queue: index === 0,
+    delay: 50,
+  })
 
   function pick(i: number) {
     if (solved || wrong.includes(i)) return
