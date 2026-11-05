@@ -1,15 +1,18 @@
 import { Volume2 } from 'lucide-react'
 import { img } from '@/lib/img'
-import { speak } from '@/lib/sfx'
+import { speak, useReadAloud } from '@/lib/sfx'
 
 type Props = {
   message: string
   mood?: 'happy' | 'oops'
   size?: 'sm' | 'md'
+  /** Read the message aloud automatically when it appears or changes. */
+  autoRead?: boolean
 }
 
 /** Bit the robot guide, with a speech bubble and a "read to me" button. */
-export default function Bit({ message, mood = 'happy', size = 'md' }: Props) {
+export default function Bit({ message, mood = 'happy', size = 'md', autoRead = true }: Props) {
+  useReadAloud(autoRead ? message : null)
   const dim = size === 'sm' ? 'h-16 w-16' : 'h-24 w-24'
   return (
     <div className="flex items-end gap-3">

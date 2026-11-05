@@ -1,12 +1,40 @@
 import { Link } from '@tanstack/react-router'
-import { Star, Volume2, VolumeX } from 'lucide-react'
-import { useState } from 'react'
+import { Download, Star, Volume2, VolumeX } from 'lucide-react'
+import { useEffect, useState } from 'react'
 import { useProgress } from '@/lib/progress'
 import { setMuted } from '@/lib/sfx'
 import { worlds } from '@/data/worlds'
 import { img } from '@/lib/img'
 
+type InstallPrompt = Event & { prompt: () => Promise<void>; userChoice: Promise<{ outcome: string }> }
+
+/** Captures the browser's "install app" prompt so we can offer our own button. */
+function useInstallPrompt() {
+  const [prompt, setPrompt] = useState<InstallPrompt | null>(null)
+  useEffect(() => {
+    const onPrompt = (e: Event) => {
+      e.preventDefault()
+      setPrompt(e as InstallPrompt)
+    }
+    const onInstalled = () => setPrompt(null)
+    window.addEventListener('beforeinstallprompt', onPrompt)
+    window.addEventListener('appinstalled', onInstalled)
+    return () => {
+      window.removeEventListener('beforeinstallprompt', onPrompt)
+      window.removeEventListener('appinstalled', onInstalled)
+    }
+  }, [])
+  async function install() {
+    if (!prompt) return
+    await prompt.prompt()
+    await prompt.userChoice
+    setPrompt(null)
+  }
+  return { canInstall: !!prompt, install }
+}
+
 export default function Header() {
+  const { canInstall, install } = useInstallPrompt()
   const progress = useProgress()
   const [muted, setMutedState] = useState(false)
   const stars = Object.values(progress.worlds).reduce((n, w) => n + w.stars, 0)
@@ -44,6 +72,16 @@ export default function Header() {
               <span className="text-xl">{progress.avatar}</span>
               {progress.name}
             </div>
+          )}
+          {canInstall && (
+            <button
+              onClick={install}
+              className="flex items-center gap-1 rounded-full bg-sky-500 px-3 py-1.5 font-display font-bold text-white hover:bg-sky-400"
+              title="Add Byte Buddies to your home screen"
+            >
+              <Download className="h-5 w-5" />
+              <span className="hidden sm:inline">Install</span>
+            </button>
           )}
           <button
             onClick={toggleSound}

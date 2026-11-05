@@ -48,7 +48,7 @@ function Home() {
               )}
             </h1>
             <p className="mt-4 max-w-xl text-xl font-bold text-slate-600">
-              Join Bit the robot on an adventure through 5 worlds. Learn what a computer is, how it thinks, what it can do, and how to stay safe online.
+              Join Bit the robot on an adventure through {worlds.length} worlds. Learn what a computer is, how it thinks, what it can do, and how to stay safe online.
             </p>
             {progress.name ? (
               <div className="mt-7 flex flex-wrap gap-3">
@@ -89,7 +89,7 @@ function Home() {
       <section id="map" className="mx-auto max-w-6xl scroll-mt-20 px-4 py-14">
         <div className="text-center">
           <h2 className="font-display text-4xl font-bold text-slate-800 sm:text-5xl">The World Map</h2>
-          <p className="mt-2 text-lg font-bold text-slate-500">Finish a world to unlock the next one. Can you collect all 15 stars?</p>
+          <p className="mt-2 text-lg font-bold text-slate-500">Finish a world to unlock the next one. Can you collect all {worlds.length * 3} stars?</p>
         </div>
         <ol className="relative mt-10 space-y-8">
           <div className="absolute bottom-10 left-1/2 top-10 hidden w-2 -translate-x-1/2 rounded-full bg-[repeating-linear-gradient(to_bottom,#cbd5e1_0_14px,transparent_14px_28px)] md:block" />
@@ -183,7 +183,7 @@ function Home() {
           <h2 className="font-display text-3xl font-bold">For parents & teachers 👩‍🏫</h2>
           <p className="mt-2 max-w-3xl text-lg text-slate-300">
             Byte Buddies turns early digital literacy into short, playful lessons. Each world takes about 5–10 minutes, uses big tap-friendly
-            buttons, and has a “read it to me” button for early readers. There are no ads, no chat, and no sign-up. Progress is saved only on
+            buttons, and reads every lesson, question and result aloud automatically for early readers. There are no ads, no chat, and no sign-up. Progress is saved only on
             this device.
           </p>
           <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-5">

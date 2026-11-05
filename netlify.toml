@@ -5,3 +5,16 @@
   command = "npm run dev"
   targetPort = 3000
   port = 8888
+
+# Always fetch the latest service worker and manifest so app updates reach installed copies.
+[[headers]]
+  for = "/sw.js"
+  [headers.values]
+    Cache-Control = "no-cache"
+    Service-Worker-Allowed = "/"
+
+[[headers]]
+  for = "/manifest.webmanifest"
+  [headers.values]
+    Content-Type = "application/manifest+json"
+    Cache-Control = "no-cache"

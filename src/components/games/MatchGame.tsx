@@ -87,7 +87,7 @@ export default function MatchGame({ activity, theme, onMistake, onComplete }: Ga
           })}
         </div>
       </div>
-      <Bit key={message.text} mood={message.ok ? 'happy' : 'oops'} message={message.text} size="sm" />
+      <Bit key={message.text} mood={message.ok ? 'happy' : 'oops'} message={message.text} size="sm" autoRead={message.text !== activity.prompt} />
     </div>
   )
 }

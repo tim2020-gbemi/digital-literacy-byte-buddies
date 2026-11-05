@@ -1,3 +1,5 @@
+import { useEffect } from 'react'
+
 // Tiny Web Audio sound effects + text-to-speech helpers. No audio files needed.
 
 let ctx: AudioContext | null = null
@@ -41,13 +43,47 @@ export const sfx = {
   },
 }
 
-export function speak(text: string) {
+// When an intro (lesson card, game title, question) was last narrated. Feedback that
+// shows up right after an intro waits its turn instead of cutting the intro off.
+let introAt = 0
+
+export function speak(text: string, { queue = false }: { queue?: boolean } = {}) {
   if (muted || typeof window === 'undefined' || !window.speechSynthesis) return
-  window.speechSynthesis.cancel()
+  if (!queue) window.speechSynthesis.cancel()
   const u = new SpeechSynthesisUtterance(text)
   u.rate = 0.95
   u.pitch = 1.15
   window.speechSynthesis.speak(u)
+}
+
+export function stopSpeaking() {
+  if (typeof window !== 'undefined') window.speechSynthesis?.cancel()
+}
+
+/** Automatically read an intro aloud. `queue` lets it follow whatever is already being said. */
+export function narrate(text: string, { queue = false }: { queue?: boolean } = {}) {
+  introAt = Date.now()
+  speak(text, { queue })
+}
+
+/** Automatically read feedback aloud; waits behind an intro that just started, otherwise interrupts. */
+export function narrateFeedback(text: string) {
+  speak(text, { queue: Date.now() - introAt < 800 })
+}
+
+/**
+ * Read `text` aloud whenever it changes. Deferred so that intros always start before
+ * feedback, even though React runs children's effects before their parent's.
+ */
+export function useReadAloud(
+  text: string | null | undefined,
+  { intro = false, queue = false, delay = intro ? 20 : 80 }: { intro?: boolean; queue?: boolean; delay?: number } = {},
+) {
+  useEffect(() => {
+    if (!text) return
+    const t = setTimeout(() => (intro ? narrate(text, { queue }) : narrateFeedback(text)), delay)
+    return () => clearTimeout(t)
+  }, [text, intro, queue, delay])
 }
 
 export function shuffle<T>(items: T[]): T[] {

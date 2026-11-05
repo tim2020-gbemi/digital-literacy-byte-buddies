@@ -1,6 +1,6 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import type { SortActivity } from '@/data/worlds'
-import { sfx, shuffle } from '@/lib/sfx'
+import { sfx, shuffle, speak } from '@/lib/sfx'
 import Bit from '@/components/Bit'
 import type { GameProps } from './types'
 
@@ -11,6 +11,13 @@ export default function SortGame({ activity, theme, onMistake, onComplete }: Gam
   const [feedback, setFeedback] = useState<{ ok: boolean; text: string } | null>(null)
   const [shakeKey, setShakeKey] = useState(0)
   const item = items[index]
+
+  // Name each new card aloud, after the game title or Bit's feedback on the last card.
+  useEffect(() => {
+    if (!item) return
+    const t = setTimeout(() => speak(`${item.label}?`, { queue: true }), 120)
+    return () => clearTimeout(t)
+  }, [item])
 
   function choose(bin: 0 | 1) {
     if (!item) return

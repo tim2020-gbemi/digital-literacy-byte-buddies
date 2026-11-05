@@ -29,3 +29,4 @@ public/img/               # Generated PNG artwork (mascot + one per world). Alwa
 - Tailwind classes for world themes are literal strings in `worlds.ts` (`theme.*`) so Tailwind can detect them.
 - Kid-friendly UI: large tap targets, `.btn-chunky` press effect, animations defined in `styles.css` and disabled under `prefers-reduced-motion`.
 - Progress lives only in localStorage by design (no accounts/PII). If accounts are added later, replace `lib/progress.ts` with a server-backed store (Netlify Database) keeping the same hook API.
+- PWA: `public/manifest.webmanifest`, icons in `public/icons/` (made from `bit-mascot.png`), service worker `public/sw.js` registered in `__root.tsx` (production only). Bump `VERSION` in `sw.js` to force caches to refresh. The header shows an Install button when the browser fires `beforeinstallprompt`.

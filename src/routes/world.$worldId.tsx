@@ -1,9 +1,9 @@
 import { Link, createFileRoute, notFound } from '@tanstack/react-router'
 import { ArrowLeft, ArrowRight, Lock, RotateCcw } from 'lucide-react'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { getWorld, worlds, type Activity, type World } from '@/data/worlds'
 import { isUnlocked, saveWorldStars, starsFor, useProgress } from '@/lib/progress'
-import { sfx, speak } from '@/lib/sfx'
+import { sfx, speak, stopSpeaking, useReadAloud } from '@/lib/sfx'
 import { img } from '@/lib/img'
 import Bit from '@/components/Bit'
 import Confetti from '@/components/Confetti'
@@ -44,6 +44,16 @@ function WorldPage() {
 
   const [phase, setPhase] = useState<Phase>({ step: 'intro' })
   const [mistakes, setMistakes] = useState(0)
+
+  // Stop talking when leaving the world.
+  useEffect(() => stopSpeaking, [])
+
+  const activity = phase.step === 'play' ? world.activities[phase.i] : null
+  useReadAloud(
+    activity && `Game ${phase.step === 'play' ? phase.i + 1 : ''}. ${activity.title}. ${'prompt' in activity ? activity.prompt : ''}`,
+    // After the first game, let Bit finish the last bit of feedback before the next title.
+    { intro: true, queue: phase.step === 'play' && phase.i > 0 },
+  )
 
   const totalSteps = world.lessons.length + world.activities.length
   const doneSteps =
@@ -157,6 +167,7 @@ function Shell({ world, children }: { world: World; children: React.ReactNode })
 }
 
 function Intro({ world, onStart }: { world: World; onStart: () => void }) {
+  useReadAloud(`World ${world.number}. ${world.name}. ${world.tagline}`, { intro: true })
   return (
     <div className="animate-pop grid items-center gap-8 rounded-[2rem] bg-white/90 p-6 shadow-2xl md:grid-cols-2 md:p-10">
       <img
@@ -196,6 +207,8 @@ function Intro({ world, onStart }: { world: World; onStart: () => void }) {
 function LessonCard({ world, i, onBack, onNext }: { world: World; i: number; onBack: () => void; onNext: () => void }) {
   const lesson = world.lessons[i]
   const isLast = i + 1 === world.lessons.length
+  const reading = `${lesson.title}. ${lesson.text} ${lesson.fact ? `Fun fact: ${lesson.fact}` : ''}`
+  useReadAloud(reading, { intro: true })
   return (
     <div className="animate-pop mx-auto max-w-2xl">
       <div className="rounded-[2rem] bg-white p-8 text-center shadow-2xl">
@@ -209,10 +222,10 @@ function LessonCard({ world, i, onBack, onNext }: { world: World; i: number; onB
           </div>
         )}
         <button
-          onClick={() => speak(`${lesson.title}. ${lesson.text} ${lesson.fact ? `Fun fact: ${lesson.fact}` : ''}`)}
+          onClick={() => speak(reading)}
           className={`mt-6 inline-flex items-center gap-2 rounded-full ${world.theme.soft} px-5 py-2 font-bold ${world.theme.text}`}
         >
-          🔊 Read it to me
+          🔊 Read it again
         </button>
       </div>
       <div className="mt-6 flex items-center justify-between">
@@ -263,6 +276,18 @@ function Done({ world, mistakes, onReplay }: { world: World; mistakes: number; o
   const stars = starsFor(mistakes)
   const next = worlds[world.number]
   const cheer = stars === 3 ? 'PERFECT! You did not miss a single one!' : stars === 2 ? 'Awesome work, explorer!' : 'You did it! Play again to win more stars.'
+  const mistakeText = mistakes === 0 ? 'no mistakes' : mistakes === 1 ? '1 mistake' : `${mistakes} mistakes`
+  // Wait for the win jingle before announcing the results.
+  useEffect(() => {
+    const t = setTimeout(
+      () =>
+        speak(
+          `World complete! You won the ${world.badge.name} badge! You earned ${stars} ${stars === 1 ? 'star' : 'stars'} out of 3, with ${mistakeText}. ${cheer}${next ? ` Next up: ${next.name}!` : ''}`,
+        ),
+      700,
+    )
+    return () => clearTimeout(t)
+  }, [world, stars, mistakeText, cheer, next])
   return (
     <div className="mx-auto max-w-xl">
       <Confetti />
@@ -277,7 +302,7 @@ function Done({ world, mistakes, onReplay }: { world: World; mistakes: number; o
           <Stars count={stars} size="h-12 w-12" />
         </div>
         <div className="mt-6 text-left">
-          <Bit message={cheer} size="sm" />
+          <Bit message={cheer} size="sm" autoRead={false} />
         </div>
         <div className="mt-6 flex flex-wrap justify-center gap-3">
           <button onClick={onReplay} className="inline-flex items-center gap-2 rounded-2xl bg-slate-100 px-5 py-3 font-display text-lg font-bold text-slate-600 hover:bg-slate-200">
